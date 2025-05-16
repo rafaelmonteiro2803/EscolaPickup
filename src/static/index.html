@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EscolaPickup - Interface dos Pais</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background-color: #3f51b5;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: white !important;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .card-header {
+            background-color: #3f51b5;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #3f51b5;
+            border-color: #3f51b5;
+        }
+        .btn-primary:hover {
+            background-color: #303f9f;
+            border-color: #303f9f;
+        }
+        .btn-success {
+            background-color: #4caf50;
+            border-color: #4caf50;
+        }
+        .btn-success:hover {
+            background-color: #388e3c;
+            border-color: #388e3c;
+        }
+        .btn-warning {
+            background-color: #ff9800;
+            border-color: #ff9800;
+            color: white;
+        }
+        .btn-warning:hover {
+            background-color: #f57c00;
+            border-color: #f57c00;
+            color: white;
+        }
+        .status-badge {
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+        .status-na-escola {
+            background-color: #e0e0e0;
+            color: #616161;
+        }
+        .status-preparando {
+            background-color: #fff9c4;
+            color: #fbc02d;
+        }
+        .status-aguardando {
+            background-color: #c8e6c9;
+            color: #388e3c;
+        }
+        .status-entregue {
+            background-color: #bbdefb;
+            color: #1976d2;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .auth-card {
+            padding: 20px;
+            margin-top: 50px;
+        }
+        .qrcode-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .qrcode-img {
+            max-width: 200px;
+            margin: 0 auto;
+        }
+        .status-btn {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 12px;
+            font-size: 1.1rem;
+        }
+        .aluno-card {
+            transition: all 0.3s ease;
+        }
+        .aluno-card:hover {
+            transform: translateY(-5px);
+        }
+        @media (max-width: 576px) {
+            .container {
+                padding: 10px;
+            }
+            .card {
+                margin-bottom: 15px;
+            }
+            .status-btn {
+                padding: 10px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <a class="navbar-brand" href="#">
+                    <i class="bi bi-mortarboard-fill me-2"></i>
+                    EscolaPickup
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto" v-if="logado">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" @click="logout">
+                                <i class="bi bi-box-arrow-right me-1"></i>
+                                Sair
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mt-4">
+            <!-- Tela de Login -->
+            <div v-if="!logado" class="login-container">
+                <div class="card auth-card">
+                    <div class="card-body">
+                        <h2 class="text-center mb-4">
+                            <i class="bi bi-person-circle me-2"></i>
+                            {{ telaRegistro ? 'Cadastro' : 'Login' }}
+                        </h2>
+                        
+                        <div v-if="!telaRegistro">
+                            <form @submit.prevent="fazerLogin">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" v-model="login.email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="senha" class="form-label">Senha</label>
+                                    <input type="password" class="form-control" id="senha" v-model="login.senha" required>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">Entrar</button>
+                                    <button type="button" class="btn btn-outline-secondary" @click="telaRegistro = true">
+                                        Criar nova conta
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div v-else>
+                            <form @submit.prevent="fazerRegistro">
+                                <div class="mb-3">
+                                    <label for="reg-nome" class="form-label">Nome completo</label>
+                                    <input type="text" class="form-control" id="reg-nome" v-model="registro.nome" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="reg-email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="reg-email" v-model="registro.email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="reg-telefone" class="form-label">Telefone</label>
+                                    <input type="tel" class="form-control" id="reg-telefone" v-model="registro.telefone" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="reg-senha" class="form-label">Senha</label>
+                                    <input type="password" class="form-control" id="reg-senha" v-model="registro.senha" required>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">Cadastrar</button>
+                                    <button type="button" class="btn btn-outline-secondary" @click="telaRegistro = false">
+                                        Voltar para login
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div v-if="mensagem" class="alert mt-3" :class="mensagemTipo">
+                            {{ mensagem }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interface Principal (Logado) -->
+            <div v-else>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="bi bi-geo-alt-fill me-2"></i>
+                                Status de Chegada
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">Olá, {{ responsavel.nome }}!</h5>
+                                <p class="card-text">
+                                    Seu status atual: 
+                                    <span class="badge" :class="{
+                                        'bg-secondary': responsavel.status === 'inativo',
+                                        'bg-warning': responsavel.status === 'a_caminho',
+                                        'bg-success': responsavel.status === 'chegou'
+                                    }">
+                                        {{ traduzirStatus(responsavel.status) }}
+                                    </span>
+                                </p>
+                                
+                                <div class="mt-4">
+                                    <button class="btn btn-warning status-btn mb-3" @click="atualizarStatus('a_caminho')" :disabled="responsavel.status === 'a_caminho'">
+                                        <i class="bi bi-car-front-fill me-2"></i>
+                                        Estou a caminho
+                                    </button>
+                                    <button class="btn btn-success status-btn" @click="atualizarStatus('chegou')" :disabled="responsavel.status === 'chegou'">
+                                        <i class="bi bi-check-circle-fill me-2"></i>
+                                        Cheguei na escola
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="bi bi-people-fill me-2"></i>
+                                Meus Alunos
+                            </div>
+                            <div class="card-body">
+                                <div v-if="alunos.length === 0" class="text-center py-4">
+                                    <i class="bi bi-emoji-frown display-4 text-muted"></i>
+                                    <p class="mt-3">Nenhum aluno associado à sua conta.</p>
+                                </div>
+                                
+                                <div v-else>
+                                    <div v-for="aluno in alunos" :key="aluno.id" class="card mb-3 aluno-card">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h5 class="card-title mb-1">{{ aluno.nome }}</h5>
+                                                    <p class="card-text text-muted mb-2">{{ aluno.turma }}</p>
+                                                    <span class="badge status-badge" :class="{
+                                                        'status-na-escola': aluno.status === 'na_escola',
+                                                        'status-preparando': aluno.status === 'preparando',
+                                                        'status-aguardando': aluno.status === 'aguardando',
+                                                        'status-entregue': aluno.status === 'entregue'
+                                                    }">
+                                                        {{ traduzirStatusAluno(aluno.status) }}
+                                                    </span>
+                                                </div>
+                                                <button class="btn btn-sm btn-outline-primary" @click="mostrarQRCode(aluno)">
+                                                    <i class="bi bi-qr-code me-1"></i>
+                                                    QR Code
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Modal QR Code -->
+                <div class="modal fade" id="qrcodeModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">QR Code de Identificação</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="text-center">
+                                    <p>Apresente este QR Code na portaria para retirar o aluno:</p>
+                                    <div class="qrcode-container">
+                                        <img :src="qrcodeAtual" class="qrcode-img img-fluid" alt="QR Code">
+                                    </div>
+                                    <p class="mt-3 fw-bold" v-if="alunoSelecionado">{{ alunoSelecionado.nome }}</p>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    logado: false,
+                    telaRegistro: false,
+                    login: {
+                        email: '',
+                        senha: ''
+                    },
+                    registro: {
+                        nome: '',
+                        email: '',
+                        telefone: '',
+                        senha: ''
+                    },
+                    responsavel: {},
+                    alunos: [],
+                    mensagem: '',
+                    mensagemTipo: 'alert-info',
+                    qrcodeAtual: '',
+                    alunoSelecionado: null,
+                    qrcodeModal: null
+                }
+            },
+            mounted() {
+                // Verificar se já está logado
+                this.verificarLogin();
+                
+                // Inicializar modal
+                this.qrcodeModal = new bootstrap.Modal(document.getElementById('qrcodeModal'));
+            },
+            methods: {
+                verificarLogin() {
+                    // Simulação - em produção, verificaria a sessão no servidor
+                    const dadosUsuario = localStorage.getItem('usuarioEscolaPickup');
+                    if (dadosUsuario) {
+                        this.responsavel = JSON.parse(dadosUsuario);
+                        this.logado = true;
+                        this.carregarAlunos();
+                    }
+                },
+                fazerLogin() {
+                    // Simulação - em produção, faria requisição ao backend
+                    if (this.login.email === 'rafael@exemplo.com' && this.login.senha === '123456') {
+                        this.responsavel = {
+                            id: 1,
+                            nome: 'Rafael',
+                            email: 'rafael@exemplo.com',
+                            status: 'inativo'
+                        };
+                        localStorage.setItem('usuarioEscolaPickup', JSON.stringify(this.responsavel));
+                        this.logado = true;
+                        this.carregarAlunos();
+                    } else if (this.login.email === 'chines@exemplo.com' && this.login.senha === '123456') {
+                        this.responsavel = {
+                            id: 2,
+                            nome: 'Chines',
+                            email: 'chines@exemplo.com',
+                            status: 'inativo'
+                        };
+                        localStorage.setItem('usuarioEscolaPickup', JSON.stringify(this.responsavel));
+                        this.logado = true;
+                        this.carregarAlunos();
+                    } else if (this.login.email === 'juliana@exemplo.com' && this.login.senha === '123456') {
+                        this.responsavel = {
+                            id: 3,
+                            nome: 'Juliana',
+                            email: 'juliana@exemplo.com',
+                            status: 'inativo'
+                        };
+                        localStorage.setItem('usuarioEscolaPickup', JSON.stringify(this.responsavel));
+                        this.logado = true;
+                        this.carregarAlunos();
+                    } else {
+                        this.mensagem = 'Email ou senha incorretos';
+                        this.mensagemTipo = 'alert-danger';
+                    }
+                },
+                fazerRegistro() {
+                    // Simulação - em produção, faria requisição ao backend
+                    this.mensagem = 'Cadastro realizado com sucesso! Faça login para continuar.';
+                    this.mensagemTipo = 'alert-success';
+                    this.telaRegistro = false;
+                    
+                    // Limpar formulário
+                    this.registro = {
+                        nome: '',
+                        email: '',
+                        telefone: '',
+                        senha: ''
+                    };
+                },
+                logout() {
+                    localStorage.removeItem('usuarioEscolaPickup');
+                    this.logado = false;
+                    this.responsavel = {};
+                    this.alunos = [];
+                },
+                carregarAlunos() {
+                    // Simulação - em produção, faria requisição ao backend
+                    if (this.responsavel.id === 1) {
+                        this.alunos = [
+                            {
+                                id: 1,
+                                nome: 'João',
+                                turma: '5º Ano - Manhã',
+                                status: 'na_escola',
+                                qrcode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=aluno_1_rafael'
+                            }
+                        ];
+                    } else if (this.responsavel.id === 2) {
+                        this.alunos = [
+                            {
+                                id: 2,
+                                nome: 'Bruno',
+                                turma: '3º Ano - Tarde',
+                                status: 'na_escola',
+                                qrcode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=aluno_2_chines'
+                            }
+                        ];
+                    } else if (this.responsavel.id === 3) {
+                        this.alunos = [
+                            {
+                                id: 3,
+                                nome: 'Olivia',
+                                turma: '1º Ano - Manhã',
+                                status: 'na_escola',
+                                qrcode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=aluno_3_juliana'
+                            }
+                        ];
+                    }
+                },
+                atualizarStatus(novoStatus) {
+                    // Simulação - em produção, faria requisição ao backend
+                    this.responsavel.status = novoStatus;
+                    localStorage.setItem('usuarioEscolaPickup', JSON.stringify(this.responsavel));
+                    
+                    // Atualizar status dos alunos
+                    if (novoStatus === 'a_caminho') {
+                        this.alunos.forEach(aluno => {
+                            if (aluno.status === 'na_escola') {
+                                aluno.status = 'preparando';
+                            }
+                        });
+                    } else if (novoStatus === 'chegou') {
+                        this.alunos.forEach(aluno => {
+                            if (aluno.status === 'na_escola' || aluno.status === 'preparando') {
+                                aluno.status = 'aguardando';
+                            }
+                        });
+                    }
+                    
+                    this.mensagem = 'Status atualizado com sucesso!';
+                    this.mensagemTipo = 'alert-success';
+                    setTimeout(() => {
+                        this.mensagem = '';
+                    }, 3000);
+                },
+                mostrarQRCode(aluno) {
+                    this.alunoSelecionado = aluno;
+                    this.qrcodeAtual = aluno.qrcode;
+                    this.qrcodeModal.show();
+                },
+                traduzirStatus(status) {
+                    switch (status) {
+                        case 'inativo': return 'Inativo';
+                        case 'a_caminho': return 'A caminho';
+                        case 'chegou': return 'Chegou na escola';
+                        default: return status;
+                    }
+                },
+                traduzirStatusAluno(status) {
+                    switch (status) {
+                        case 'na_escola': return 'Na escola';
+                        case 'preparando': return 'Preparando para saída';
+                        case 'aguardando': return 'Aguardando na portaria';
+                        case 'entregue': return 'Entregue';
+                        default: return status;
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
